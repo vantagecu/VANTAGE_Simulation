@@ -2,13 +2,77 @@ import bpy
 import os
 import errno
 
+__author__ = "Nicholas Renninger"
+__copyright__ = "'Copyright' 2019, VANTAGE"
+__credits__ = ["Long Song Silver"]
+__license__ = "MIT"
+__version__ = "0.0.1"
+__maintainer__ = "Nicholas Renninger"
+__email__ = "nicholas.renninger@colorado.edu"
+__status__ = "Development"
 
-def main():
 
+def configureRunSaveBlensorScanRange():
+
+    veryImportantFunction()
+
+    ###############
     # user settings
-    MAX_FRAMES = 300
-    outputCase = 'config_simulation_template_2_25_Josh_ToF_Calibration_tube1-23_02_54_2019_02_28'
-    SIMULATION_DIR = 'D:\\Google Drive\\School\\VANTAGE\\13 Simulation'
+    ###############
+
+    # ability to turn off scanning if you just want to verify the output
+    # directory structure before running simulation batch
+    SHOULD_RUN_SCANS = True
+
+    # run scans from frame 1 to MAX_FRAMES
+    MAX_FRAMES = 45
+
+    # because blensor uses a dispatch architecture with no easy observer
+    # pattern implementation, you can't programmatically know when a scan is
+    # done. Thus, to run multiple scans for the same file, you run this script
+    # with a number of times to dispatch the scanner
+    #
+    # Changing NUM_SIMS_TO_RUN changes the maximum value of X in the 'SampleX'
+    # directory within the current case's ToF Data folder.
+    #
+    # e.g. NUM_SIMS_TO_RUN = 4 will create the following folders in the
+    # outputCase directory:
+    # PATH_TO_SIMULATION_DIR/4_Simulation_Cases/$outputCase/ToF_Data/Sample1
+    # PATH_TO_SIMULATION_DIR/4_Simulation_Cases/$outputCase/ToF_Data/Sample2
+    # PATH_TO_SIMULATION_DIR/4_Simulation_Cases/$outputCase/ToF_Data/Sample3
+    # PATH_TO_SIMULATION_DIR/4_Simulation_Cases/$outputCase/ToF_Data/Sample4
+    # with all of the pcd files for each scan in each "sample" dir
+    #
+    # Change this number to easily create new folders containing successive
+    # scans of the same case
+    NUM_SIMS_TO_RUN = 10
+    START_SAMPLE_NUM = 1
+    outputCase = 'VTube4_DTube3_CubeSatsSix1U_Speed250cmps-16_15_59_2019_04_15'
+
+    # sensor Gaussian process noise
+    # adjust these to make the ToF returns look more like real sensor data
+
+    # nominal value: 0
+    noise_mu = 0
+
+    # nominal value: [0.01 - 0.02]
+    noise_sigma = 0.01
+
+    ###########################################################################
+    # ABS PATH to the directory containing the simulation repo
+    # directories will look like the following:
+    # */<SIMULATION_DIR>/4_Simulation_Cases/
+    # */<SIMULATION_DIR>/VANTAGE_Simulation/
+    #
+    # Thus, set SIMULATION_DIR such that it contains the absolute path to the
+    # overall <SIMULATION_DIR> shown above.
+    #
+    # Nick Workstation
+    # SIMULATION_DIR = 'F:\\Cloud\\Google Drive\\Undergrad\\VANTAGE\\13 Simulation'
+
+    # Nick LT
+    SIMULATION_DIR = 'D:\\Google Drive\\Undergrad\\VANTAGE\\13 Simulation'
+    ###########################################################################
 
     MM_2_M = 0.001
 
@@ -59,8 +123,8 @@ def main():
 
     # H by V FOV
     # [deg]
-    bpy.context.object.tof_lens_angle_w = 40
-    bpy.context.object.tof_lens_angle_h = 30
+    bpy.context.object.tof_lens_angle_w = 59
+    bpy.context.object.tof_lens_angle_h = 44
 
     # maximum scan distance
     # [m]
@@ -72,10 +136,10 @@ def main():
 
     # noise parameters
     # who fucking knows what these mean
-    bpy.context.object.tof_noise_mu = 0.01
-    bpy.context.object.tof_noise_sigma = 0.02
+    bpy.context.object.tof_noise_mu = noise_mu
+    bpy.context.object.tof_noise_sigma = noise_sigma
 
-    # physical phenoma modeling
+    # physical phenomena modeling
     # backfolding can cause objects to appear closer than they actually are
     bpy.context.object.tof_backfolding = True
 
@@ -98,7 +162,7 @@ def main():
     # allow light bounces based on surface reflectivity
     bpy.context.object.ref_enabled = True
 
-    # should the PC be visiable only in the frame it was taken
+    # should the PC be visible only in the frame it was taken
     # gui option used to better visualize the objects
     bpy.context.object.show_in_frame = True
 
@@ -121,15 +185,26 @@ def main():
     # build the simulation case directory and write the truth data and the
     # config file to json files
     outputDir = os.path.join(SIMULATION_DIR, '4_Simulation_Cases')
-    tofDataPath = os.path.join(outputDir, outputCase, 'ToF_Data')
-    outFName = os.path.join(tofDataPath, outputCase + '.pcd')
 
-    outDirs = [outFName]
+    for caseNum in range(START_SAMPLE_NUM, NUM_SIMS_TO_RUN + 1):
 
-    makeDirsFromFileNames(outDirs)
+        # create directory for each time the "sample" case is run
+        sampleStr = 'Sample' + str(caseNum)
+        tofDataPath = os.path.join(outputDir, outputCase, 'ToF_Data',
+                                   sampleStr)
+        outFName = os.path.join(tofDataPath, sampleStr + '_' +
+                                outputCase + '.pcd')
 
-    print(outDirs)
-    bpy.ops.blensor.scanrange_handler(filepath=outFName)
+        makeDirsFromFileNames([outFName])
+
+        # simulates pushing the 'scan range' button in the Blensor sensor GUI
+        # to ensure everything is set properly
+        print('-------------------------------------------------------------')
+        print('Running Simulation Number ', caseNum)
+        if SHOULD_RUN_SCANS:
+            bpy.ops.blensor.scanrange_handler(filepath=outFName)
+        print('Simulation finished with output to:\n', tofDataPath)
+        print('-------------------------------------------------------------')
 
 
 #
@@ -152,5 +227,20 @@ def makeDirsFromFileNames(fpaths):
                     raise
 
 
+#
+# @brief      does all of the things
+#
+# @return     never change this or we'll all die
+#
+def veryImportantFunction():
+
+    # super important NEVER CHANGE THIS it will break all of the coding and
+    # algorithms
+    print('\n\n\n\n\n\n\n\n\n=================================')
+    print('\nSwaqeroni mAceroni')
+    print('\n=================================')
+
+
 if __name__ == '__main__':
-    main()
+
+    configureRunSaveBlensorScanRange()
