@@ -41,6 +41,10 @@ def getConfigFile():
 
     configSetupFile = 'currSimConfigFile'
 
+    # need to ensure that the cwd of the script is the same directory as this
+    # python file so it can find the configuration configSetupFile
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
     try:
         with open(configSetupFile, 'r') as stream:
             configFileName = file.read(stream)
@@ -249,8 +253,8 @@ def addCamera(settings, doc):
 def setup_deployer(settings, doc):
 
     dep = settings['DEPLOYER_FILEPATH']
-    gDrive = settings['G_DRIVE_PATH']
-    fullFile = os.path.join(gDrive, dep)
+    simLoc = settings['SIM_DIR_LOCATION']
+    fullFile = os.path.join(simLoc, dep)
 
     # Import Deployer model
     c4d.documents.MergeDocument(doc, fullFile, c4d.SCENEFILTER_OBJECTS |
@@ -377,7 +381,7 @@ def calculateOriginFromTubeNumber(desired_tube, settings, translVec):
 #
 def setup_cubesats(settings, des_tube_origin, doc):
     objs = []
-    gDrive = settings['G_DRIVE_PATH']
+    simLoc = settings['SIM_DIR_LOCATION']
 
     cubeSatSizes_strs = settings['CUBESATS_SIZES']
     cubeSatSizes_conversion = settings['U_STR_TO_U']
@@ -430,7 +434,7 @@ def setup_cubesats(settings, des_tube_origin, doc):
 
         # Import the CubeSat Model
         cubesat = settings['CUBESAT_FILEPATHS'][cubeSatSizes_strs[ii]]
-        fullFile = os.path.join(gDrive, cubesat)
+        fullFile = os.path.join(simLoc, cubesat)
 
         # get length of the CubeSat Model
         # [cm]
